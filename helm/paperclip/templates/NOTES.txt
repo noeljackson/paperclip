@@ -1,0 +1,13 @@
+Paperclip has been deployed.
+
+{{- if .Values.paperclip.ingress.enabled }}
+
+Access Paperclip at: https://{{ .Values.paperclip.ingress.host }}
+{{- else }}
+
+To access Paperclip, run:
+
+  kubectl port-forward svc/{{ include "paperclip.fullname" . }} 3100:{{ .Values.paperclip.service.port }} -n {{ .Release.Namespace }}
+
+Then open http://localhost:3100
+{{- end }}

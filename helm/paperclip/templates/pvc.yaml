@@ -1,0 +1,17 @@
+{{- if .Values.paperclip.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "paperclip.fullname" . }}
+  labels:
+    {{- include "paperclip.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml .Values.paperclip.persistence.accessModes | nindent 4 }}
+  {{- if .Values.paperclip.persistence.storageClass }}
+  storageClassName: {{ .Values.paperclip.persistence.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.paperclip.persistence.size }}
+{{- end }}

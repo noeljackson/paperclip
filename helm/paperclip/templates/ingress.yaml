@@ -1,0 +1,33 @@
+{{- if .Values.paperclip.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "paperclip.fullname" . }}
+  labels:
+    {{- include "paperclip.labels" . | nindent 4 }}
+  {{- with .Values.paperclip.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.paperclip.ingress.className }}
+  ingressClassName: {{ .Values.paperclip.ingress.className }}
+  {{- end }}
+  {{- if .Values.paperclip.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.paperclip.ingress.host }}
+      secretName: {{ .Values.paperclip.ingress.tls.secretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.paperclip.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "paperclip.fullname" . }}
+                port:
+                  name: http
+{{- end }}

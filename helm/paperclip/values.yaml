@@ -1,0 +1,75 @@
+paperclip:
+  image:
+    repository: ghcr.io/noeljackson/paperclip
+    tag: ""  # defaults to appVersion
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+
+  publicUrl: ""           # e.g. https://paperclip.example.com
+  deploymentMode: authenticated
+  deploymentExposure: private
+  serveUi: "true"
+
+  # PostgreSQL connection — provide via existing secret or inline URL
+  postgres:
+    existingSecret: ""
+    existingSecretKey: "uri"
+    url: ""               # not recommended for production
+
+  # Auth secret (BETTER_AUTH_SECRET)
+  auth:
+    existingSecret: ""
+    existingSecretKey: "secret"
+    secret: ""            # not recommended for production
+
+  # Additional environment variables
+  env: []
+  #  - name: PAPERCLIP_TELEMETRY_DISABLED
+  #    value: "1"
+
+  replicaCount: 1
+
+  resources: {}
+  #  requests:
+  #    cpu: 250m
+  #    memory: 512Mi
+  #  limits:
+  #    cpu: "1"
+  #    memory: 1Gi
+
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+
+  service:
+    type: ClusterIP
+    port: 80
+    annotations: {}
+
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    host: ""
+    tls:
+      enabled: false
+      secretName: ""
+
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podAnnotations: {}
+  podLabels: {}

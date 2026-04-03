@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "paperclip.fullname" . }}
+  labels:
+    {{- include "paperclip.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.paperclip.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "paperclip.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "paperclip.selectorLabels" . | nindent 8 }}
+        {{- with .Values.paperclip.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.paperclip.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.paperclip.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "paperclip.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.paperclip.securityContext | nindent 8 }}
+      containers:
+        - name: paperclip
+          image: {{ include "paperclip.image" . }}
+          imagePullPolicy: {{ .Values.paperclip.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3100
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "3100"
+            - name: HOST
+              value: "0.0.0.0"
+            - name: NODE_ENV
+              value: "production"
+            - name: SERVE_UI
+              value: {{ .Values.paperclip.serveUi | quote }}
+            - name: PAPERCLIP_DEPLOYMENT_MODE
+              value: {{ .Values.paperclip.deploymentMode | quote }}
+            - name: PAPERCLIP_DEPLOYMENT_EXPOSURE
+              value: {{ .Values.paperclip.deploymentExposure | quote }}
+            {{- if .Values.paperclip.publicUrl }}
+            - name: PAPERCLIP_PUBLIC_URL
+              value: {{ .Values.paperclip.publicUrl | quote }}
+            {{- end }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "paperclip.dbSecretName" . }}
+                  key: {{ include "paperclip.dbSecretKey" . }}
+            - name: BETTER_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "paperclip.authSecretName" . }}
+                  key: {{ include "paperclip.authSecretKey" . }}
+            - name: PAPERCLIP_HOME
+              value: /paperclip
+            - name: PAPERCLIP_INSTANCE_ID
+              value: default
+            - name: PAPERCLIP_CONFIG
+              value: /paperclip/instances/default/config.json
+            {{- with .Values.paperclip.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if .Values.paperclip.persistence.enabled }}
+          volumeMounts:
+            - name: data
+              mountPath: /paperclip
+          {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          {{- with .Values.paperclip.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- if .Values.paperclip.persistence.enabled }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "paperclip.fullname" . }}
+      {{- end }}
+      {{- with .Values.paperclip.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.paperclip.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.paperclip.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
